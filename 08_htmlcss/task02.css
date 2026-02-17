@@ -1,0 +1,14 @@
+.header {
+  color: #fff; /* テキスト色を濃いグレーに */
+  background-color: #84ceef; /* 背景色を水色に */
+}
+
+h1 {
+  color: #e47292; /* テキスト色を濃いグレーに */
+  text-align: center; /* テキストを中央揃えに */
+}
+
+.footer {
+  color: #fff; /* テキスト色を濃いグレーに */
+  background-color: #040000; /* 背景色を水色に */
+}
