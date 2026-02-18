@@ -32,8 +32,8 @@ def delete(todo_id):
     # 課題で実装します。
     if request.method == "GET":
         print(f"TODO ID to delete: {todo_id}")
-        if todo_id < len(load_todos()):
-            todos = load_todos()
+        todos = load_todos()
+        if todo_id < len(todos):
             del todos[todo_id]
             save_todos(todos)
 
