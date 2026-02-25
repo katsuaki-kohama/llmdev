@@ -1,6 +1,6 @@
 import pytest
-import os
-from original2.graph import get_bot_response, get_messages_list, memory
+from langchain_core.messages import HumanMessage, AIMessage
+from original.graph import get_bot_response, get_messages_list, memory, build_graph
 
 # モック用のテストデータ
 USER_MESSAGE_1 = "1たす2は？"
@@ -14,23 +14,25 @@ def setup_memory():
     memory.storage.clear()
     return memory
 
+@pytest.fixture
+def setup_graph():
+    """
+    テスト用に新しいグラフを構築。
+    """
+    return build_graph("gpt-4o-mini", memory)
 
 def test_get_bot_response_single_message(setup_memory):
     """
     ボットがシンプルなメッセージに応答できるかをテスト。
     """
-    if not os.getenv("OPENAI_API_KEY") and not os.getenv("API_KEY"):
-        pytest.skip("OPENAI_API_KEY/API_KEY が未設定のためスキップ")
     response = get_bot_response(USER_MESSAGE_1, setup_memory)
     assert isinstance(response, str), "応答は文字列である必要があります。"
-    assert response.strip() != "", "応答は空文字でない必要があります。"
+    assert "3" in response, "1たす2の計算結果が正しく応答されるべきです。"
 
 def test_get_bot_response_multiple_messages(setup_memory):
     """
     複数のメッセージを処理してメモリに保存されるかをテスト。
     """
-    if not os.getenv("OPENAI_API_KEY") and not os.getenv("API_KEY"):
-        pytest.skip("OPENAI_API_KEY/API_KEY が未設定のためスキップ")
     get_bot_response(USER_MESSAGE_1, setup_memory)
     get_bot_response(USER_MESSAGE_2, setup_memory)
     messages = get_messages_list(setup_memory)
@@ -42,8 +44,6 @@ def test_memory_clear_on_new_session(setup_memory):
     """
     新しいセッションでメモリがクリアされるかをテスト。
     """
-    if not os.getenv("OPENAI_API_KEY") and not os.getenv("API_KEY"):
-        pytest.skip("OPENAI_API_KEY/API_KEY が未設定のためスキップ")
     # 初期応答を生成してメモリにメッセージを保存
     get_bot_response(USER_MESSAGE_1, setup_memory)
 
@@ -60,12 +60,22 @@ def test_memory_clear_on_new_session(setup_memory):
     # メモリが空であることを確認
     assert cleared_messages is None or 'channel_values' not in cleared_messages, "メモリがクリアされていません。"
 
+def test_build_graph(setup_memory):
+    """
+    グラフが正しく構築され、応答を生成できるかをテスト。
+    """
+    graph = build_graph("gpt-4o-mini", setup_memory)
+    response = graph.invoke(
+        {"messages": [("user", USER_MESSAGE_1)]},
+        {"configurable": {"thread_id": "1"}},
+        stream_mode="values"
+    )
+    assert response["messages"][-1].content, "グラフが有効な応答を生成する必要があります。"
+
 def test_get_messages_list(setup_memory):
     """
     メモリ内のメッセージリストが正しく取得されるかをテスト。
     """
-    if not os.getenv("OPENAI_API_KEY") and not os.getenv("API_KEY"):
-        pytest.skip("OPENAI_API_KEY/API_KEY が未設定のためスキップ")
     get_bot_response(USER_MESSAGE_1, setup_memory)
     messages = get_messages_list(setup_memory)
     assert len(messages) > 0, "応答後、メッセージリストは空であってはなりません。"

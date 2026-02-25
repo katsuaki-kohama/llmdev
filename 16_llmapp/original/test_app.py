@@ -1,7 +1,7 @@
 import pytest
-import os
-from original2.app import app
-from original2.graph import memory, get_messages_list
+from flask import template_rendered
+from original.app import app
+from original.graph import memory, get_messages_list
 
 @pytest.fixture
 def client():
@@ -26,8 +26,6 @@ def test_index_post_request(client):
     """
     POSTリクエストでボットの応答が正しく返されるかをテスト。
     """
-    if not os.getenv("OPENAI_API_KEY") and not os.getenv("API_KEY"):
-        pytest.skip("OPENAI_API_KEY/API_KEY が未設定のためスキップ")
     user_message = "1たす2は？"
 
     with client as c:
@@ -35,14 +33,12 @@ def test_index_post_request(client):
         decoded_data = response.data.decode('utf-8')  # バイト文字列をデコード
         assert response.status_code == 200, "POSTリクエストに対してステータスコード200を返すべきです。"
         assert "1たす2" in decoded_data, "ユーザーの入力がHTML内に表示されるべきです。"
-        assert "bot-message" in decoded_data, "ボットの応答領域がHTML内に表示されるべきです。"
+        assert "3" in decoded_data, "ボットの応答が正しくHTML内に表示されるべきです。"
 
 def test_memory_persistence(client):
     """
     複数のPOSTリクエストでメッセージが正しくメモリに保持されるかをテスト。
     """
-    if not os.getenv("OPENAI_API_KEY") and not os.getenv("API_KEY"):
-        pytest.skip("OPENAI_API_KEY/API_KEY が未設定のためスキップ")
     user_message_1 = "1たす2は？"
     user_message_2 = "こんにちは！"
 
@@ -60,8 +56,6 @@ def test_template_rendering(client):
     """
     テンプレートが正しくレンダリングされているかをテスト。
     """
-    if not os.getenv("OPENAI_API_KEY") and not os.getenv("API_KEY"):
-        pytest.skip("OPENAI_API_KEY/API_KEY が未設定のためスキップ")
     user_message = "1たす2は？"
 
     with client as c:
@@ -70,4 +64,4 @@ def test_template_rendering(client):
 
         assert response.status_code == 200, "POSTリクエストでステータスコード200を返すべきです。"
         assert "1たす2" in decoded_data, "テンプレートでユーザーの入力がレンダリングされるべきです。"
-        assert "bot-message" in decoded_data, "テンプレートでボットの応答がレンダリングされるべきです。"
+        assert "3" in decoded_data, "テンプレートでボットの応答がレンダリングされるべきです。"

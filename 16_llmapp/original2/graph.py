@@ -3,11 +3,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from dotenv import load_dotenv
-
-try:
-    from openai import OpenAI
-except Exception:  # pragma: no cover
-    OpenAI = None  # type: ignore
+from openai import OpenAI
 
 # 環境変数を読み込む
 def _load_env() -> None:
